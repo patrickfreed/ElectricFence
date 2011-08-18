@@ -1,0 +1,4 @@
+name: ElectricFence
+author: darksoft
+main: org.darksoft.electricfence.ElectricFence
+version: 1.4
