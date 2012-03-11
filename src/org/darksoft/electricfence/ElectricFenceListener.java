@@ -1,32 +1,70 @@
 package org.darksoft.electricfence;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.block.BlockListener;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.Redstone;
 
-public class ElectricFenceListener extends BlockListener {
-	public void onBlockDamage(BlockDamageEvent event) {
+public class ElectricFenceListener implements Listener{
+	
+	@EventHandler
+	public void onBlockDamage(BlockDamageEvent event){
 		Player player = event.getPlayer();
-		if (event.getBlock().getType().equals(Material.FENCE)) {
+		if (ElectricFence.isElectricFence(event.getBlock())) {
 			Block b = event.getBlock();
-			if (b.isBlockIndirectlyPowered()) {
-				if (ElectricFence.earthBlockEnabled) {
-					if ((b.getTypeId() != ElectricFence.earthBlock) && (b.getTypeId() != 85)) {
-						return;
-					}
-				}
+			if (isBlockIndirectlyPowered(b)) {
 				Location location = player.getLocation();
-				event.setCancelled(true);
 				if (ElectricFence.canBeStruck(player)) {
 					player.damage(ElectricFence.damage);
-					player.getWorld().strikeLightningEffect(location);
-					player.sendMessage("You tried to break through an electric fence!!");
-					ElectricFence.message(player.getName() + " just tried to break an electric fence!");
+					if(ElectricFence.isMessaging)
+						player.sendMessage(ChatColor.YELLOW + "You tried to break through an electric fence!!");
+					if(ElectricFence.isUsingLightning)
+						player.getWorld().strikeLightningEffect(location);
+					event.setCancelled(true);
 				}
 			}
 		}
+	}
+
+	public static boolean isBlockIndirectlyPowered(Block b) {
+		int x = b.getX();
+		int y = b.getY();
+		int z = b.getZ();
+
+		if ((ElectricFence.earthBlockEnabled) && 
+				(b.getRelative(BlockFace.DOWN).getTypeId() != ElectricFence.earthBlock) && (b.getRelative(BlockFace.DOWN).getTypeId() != 85)) {
+			return false;
+		}
+
+		return (isBlockPowered(b, x + 1, y, z)) || 
+		(isBlockPowered(b, x - 1, y, z)) || 
+		(isBlockPowered(b, x, y - 2, z)) || 
+		(isBlockPowered(b, x, y - 3, z)) || 
+		(isBlockPowered(b, x, y - 4, z)) || 
+		(isBlockPowered(b, x, y - 5, z)) || 
+		(isBlockPowered(b, x, y - 6, z)) || 
+		(isBlockPowered(b, x, y - 7, z)) || 
+		(isBlockPowered(b, x, y - 8, z)) || 
+		(isBlockPowered(b, x, y - 9, z)) || 
+		(isBlockPowered(b, x, y - 10, z)) || 
+		(isBlockPowered(b, x, y - 11, z)) || 
+		(isBlockPowered(b, x, y + 1, z)) || 
+		(isBlockPowered(b, x, y - 1, z)) || 
+		(isBlockPowered(b, x, y, z + 1)) || 
+		(isBlockPowered(b, x, y, z - 1));
+	}
+
+	public static boolean isBlockPowered(Block b, int x, int y, int z) {
+		MaterialData md = b.getWorld().getBlockAt(x, y, z).getState().getData();
+		if ((md instanceof Redstone)) {
+			return ((Redstone)md).isPowered();
+		}
+		return false;
 	}
 }

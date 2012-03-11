@@ -2,204 +2,174 @@ package org.darksoft.electricfence;
 
 import java.io.File;
 import java.io.IOException;
+
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.config.Configuration;
 
 public class ElectricFence extends JavaPlugin{
-	public static Configuration config;
+
+	public static boolean isUsingLightning;
+	public static boolean isMessaging;
 	public static int damage;
 	public static int radiusDamage;
-	public static boolean radiusDamageEnabled;
+	private static boolean radiusDamageEnabled;
 	public static boolean earthBlockEnabled;
 	public static int earthBlock;
+	public static YamlConfiguration config;
+	public static boolean isShockingMobs;
+	public static boolean isElectricWood;
+	public static boolean isElectricIron;
+	public static boolean isShockingPlayers;
 	private final ElectricFenceListener blockDamageListener = new ElectricFenceListener();
 
 	public void onEnable()
 	{
-		message("ElectricFence + " + this.getDescription().getVersion() + " has been enabled!");
-		try
-		{
-			File newDir = new File("plugins/ElectricFence");
-			if (!newDir.exists())
-				newDir.mkdirs();
-			File yml = new File("plugins/ElectricFence/config.yml");
-			if (!yml.exists())
-			{
+		message("ElectricFence v." + getDescription().getVersion() + "has been enabled!");
 
-				yml.createNewFile();
-				config = getConfiguration();
-				config.setProperty("damage", 10);
-				config.setProperty("radiusDamageEnabled", true);
-				config.setProperty("radiusDamage", 5);
-				config.setProperty("earthBlockEnabled", true);
-				config.setProperty("earthBlock", 15);
-				config.save();
+		File newDir = new File("plugins/ElectricFence");
+		File configFile = new File("plugins/ElectricFence", "config.yml");
 
-				damage = config.getInt("damage", 10);
-				radiusDamageEnabled = config.getBoolean("radiusDamageEnabled", true);
-				radiusDamage = config.getInt("radiusDamage", 0);
-				earthBlockEnabled = config.getBoolean("earthBlockEnabled", true);
-				earthBlock = config.getInt("earthBlock", 15);
+		config = YamlConfiguration.loadConfiguration(new File("plugins/ElectricFence", "config.yml"));
 
-				message("Configuration file created then loaded");
-			}
-			else
-			{
-				config = getConfiguration();
-				damage = config.getInt("damage", 0);
-				radiusDamageEnabled = config.getBoolean("radiusDamageEnabled", true);
-				radiusDamage = config.getInt("radiusDamage", 0);
-				earthBlockEnabled = config.getBoolean("earthBlockEnabled", true);
-				earthBlock = config.getInt("earthBlock", 0);
-				message("Configuration file loaded");
-			}
-		}
-		catch (IOException e)
-		{
-			message("Config file read error");
+		if (!newDir.exists()) {
+			newDir.mkdirs();
 		}
 
-		if (radiusDamageEnabled)
-		{
-			getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
+		if (!configFile.exists()) {
+			config.set("damage", Integer.valueOf(0));
+			config.set("radiusDamageEnabled", true);
+			config.set("radiusDamage", 0);
+			config.set("earthBlockEnabled", true);
+			config.getInt("earthBlock", 0);
+			config.set("Shock.Mobs", true);
+			config.set("Shock.Players", true);
+			config.set("FenceTypes.Wood", true);
+			config.set("FenceTypes.Iron", true);
+			config.set("IsSendingMessages", true);
+			config.set("useLightningEffect", true);
+
+			try{
+				config.save(new File("plugins/ElectricFence", "config.yml"));
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+
+		damage = config.getInt("damage");
+		radiusDamageEnabled = config.getBoolean("radiusDamageEnabled");
+		radiusDamage = config.getInt("radiusDamage");
+		earthBlockEnabled = config.getBoolean("earthBlockEnabled");
+		earthBlock = config.getInt("earthBlock");
+		isShockingMobs = config.getBoolean("Shock.Mobs");
+		isShockingPlayers = config.getBoolean("Shock.Players");
+		isElectricWood = config.getBoolean("FenceTypes.Wood");
+		isElectricWood = config.getBoolean("FenceTypes.Iron");
+		isMessaging = config.getBoolean("isSendingMessages");
+		isUsingLightning = config.getBoolean("useLightningEffect");
+
+		message("Configuration file loaded");
+
+		if (radiusDamageEnabled) {
+			getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
 				public void run() {
 					for (World world : ElectricFence.this.getServer().getWorlds())
 						for (Entity entity : world.getEntities())
-							if ((entity instanceof Player)){
-								Block block = entity.getLocation().getBlock();
-								if (entity.getLocation().getBlock().getRelative(BlockFace.NORTH_WEST).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.NORTH_WEST).isBlockIndirectlyPowered())
+							if ((((entity instanceof Player)) && (ElectricFence.isShockingPlayers)) || ((((entity instanceof Animals)) || ((entity instanceof Monster))) && (ElectricFence.isShockingMobs)))
+								if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.NORTH_WEST))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.NORTH_WEST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.NORTH).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.NORTH).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.NORTH))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.NORTH)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.NORTH_EAST).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.NORTH_EAST).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.NORTH_EAST))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.NORTH_EAST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.EAST).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.EAST).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.EAST))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.EAST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.SOUTH_EAST).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.SOUTH_EAST).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH_EAST))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH_EAST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.SOUTH).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.SOUTH).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-								else if (block.getRelative(BlockFace.SOUTH_WEST).getType() == Material.FENCE)
-								{
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.SOUTH_WEST).isBlockIndirectlyPowered())
+								else if (ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH_WEST))) {
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.SOUTH_WEST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
 								else {
-									if (block.getRelative(BlockFace.WEST).getType() != Material.FENCE)
+									if (!ElectricFence.isElectricFence(entity.getLocation().getBlock().getRelative(BlockFace.WEST)))
 										continue;
-									if (earthBlockEnabled) {
-										if ((block.getTypeId() != ElectricFence.earthBlock) && (block.getTypeId() != 85)) {
-											return;
-										}
-									}
-									if (!block.getRelative(BlockFace.WEST).isBlockIndirectlyPowered())
+									if (!ElectricFenceListener.isBlockIndirectlyPowered(entity.getLocation().getBlock().getRelative(BlockFace.WEST)))
 										continue;
-									ElectricFence.this.radiusStrike((Player)entity);
+									ElectricFence.this.radiusStrike(entity);
 								}
-							}
 				}
 			}
 			, 20L, 20L);
 		}
 
-		getServer().getPluginManager().registerEvent(Event.Type.BLOCK_DAMAGE, this.blockDamageListener, Event.Priority.Normal, this);
+		getServer().getPluginManager().registerEvents(this.blockDamageListener, this);
 	}
 
-	public void radiusStrike(Player player)
-	{
-		Location location = player.getLocation();
-		if (canBeStruck(player))
-		{
-			player.getWorld().strikeLightningEffect(location);
-			player.damage(radiusDamage);
-			player.sendMessage("You got too close to an electric fence!");
-			message(player.getName() + " got zapped by an electric fence!");
+	public void radiusStrike(Entity entity) {
+		Location location = entity.getLocation();
+
+		if (canBeStruck(entity)) {
+			if ((entity instanceof Player)) {
+				((Player)entity).sendMessage(ChatColor.YELLOW + "You got too close to an electric fence!");
+			}
+			entity.getWorld().strikeLightningEffect(location);
+			((LivingEntity)entity).damage(radiusDamage);
 		}
-
 	}
 
-	public void onDisable()
-	{
+	public void onDisable() {
 		message("Plugin shutting down!");
 	}
 
-	public static void message(String msg)
-	{
+	public static void message(String msg) {
 		System.out.println("[ElectricFence]: " + msg);
 	}
 
-	public static boolean canBeStruck(Player player)
-	{
-		return !player.isOp() && !player.hasPermission("ElectricFence.bypass");
+	public static boolean canBeStruck(Entity entity) {
+		if ((entity instanceof Player))
+			return (!((Player)entity).isOp()) || (((Player)entity).hasPermission("ElectricFence.bypass"));
+		return true;
 	}
 
+	public static boolean hasPerm(String perm, Player player) {
+		return player.hasPermission("ElectricFence." + perm);
+	}
 
+	public static boolean isElectricFence(Block b) {
+		if (config.getBoolean("FenceTypes.Wood")) {
+			if (b.getTypeId() == 85)
+				return true;
+		} else if (!config.getBoolean("FenceTypes.Iron"));
+		return b.getTypeId() == 101;
+	}
 }
