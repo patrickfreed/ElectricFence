@@ -146,9 +146,11 @@ public class ElectricFence extends JavaPlugin{
 
 		if (canBeStruck(entity)) {
 			if ((entity instanceof Player)) {
-				((Player)entity).sendMessage(ChatColor.YELLOW + "You got too close to an electric fence!");
+				if(isMessaging)
+					((Player)entity).sendMessage(ChatColor.YELLOW + "You got too close to an electric fence!");
 			}
-			entity.getWorld().strikeLightningEffect(location);
+			if(isMessaging)
+				entity.getWorld().strikeLightningEffect(location);
 			((LivingEntity)entity).damage(radiusDamage);
 		}
 	}
