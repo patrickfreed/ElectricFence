@@ -32,8 +32,7 @@ public class ElectricFence extends JavaPlugin{
 	public static boolean isShockingPlayers;
 	private final ElectricFenceListener blockDamageListener = new ElectricFenceListener();
 
-	public void onEnable()
-	{
+	public void onEnable(){
 		message("ElectricFence v." + getDescription().getVersion() + "has been enabled!");
 
 		File newDir = new File("plugins/ElectricFence");
@@ -78,6 +77,13 @@ public class ElectricFence extends JavaPlugin{
 		isUsingLightning = config.getBoolean("useLightningEffect");
 
 		message("Configuration file loaded");
+		
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		if (radiusDamageEnabled) {
 			getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
