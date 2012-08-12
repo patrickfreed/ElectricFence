@@ -45,7 +45,7 @@ public class ElectricFence extends JavaPlugin{
 		}
 
 		if (!configFile.exists()) {
-			config.set("damage", Integer.valueOf(0));
+			config.set("damage", 0);
 			config.set("radiusDamageEnabled", true);
 			config.set("radiusDamage", 0);
 			config.set("earthBlockEnabled", true);
@@ -149,7 +149,7 @@ public class ElectricFence extends JavaPlugin{
 				if(isMessaging)
 					((Player)entity).sendMessage(ChatColor.YELLOW + "You got too close to an electric fence!");
 			}
-			if(isMessaging)
+			if(isUsingLightning)
 				entity.getWorld().strikeLightningEffect(location);
 			((LivingEntity)entity).damage(radiusDamage);
 		}
