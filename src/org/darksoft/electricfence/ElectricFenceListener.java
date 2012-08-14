@@ -3,7 +3,6 @@ package org.darksoft.electricfence;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,11 +35,6 @@ public class ElectricFenceListener implements Listener{
 		int x = b.getX();
 		int y = b.getY();
 		int z = b.getZ();
-
-		if ((ElectricFence.earthBlockEnabled) && 
-				(b.getRelative(BlockFace.DOWN).getTypeId() != ElectricFence.earthBlock) && (b.getRelative(BlockFace.DOWN).getTypeId() != 85)) {
-			return false;
-		}
 
 		return (isBlockPowered(b, x + 1, y, z)) || 
 		(isBlockPowered(b, x - 1, y, z)) || 

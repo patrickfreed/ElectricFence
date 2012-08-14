@@ -23,8 +23,6 @@ public class ElectricFence extends JavaPlugin{
 	public static int damage;
 	public static int radiusDamage;
 	private static boolean radiusDamageEnabled;
-	public static boolean earthBlockEnabled;
-	public static int earthBlock;
 	public static YamlConfiguration config;
 	public static boolean isShockingMobs;
 	public static boolean isElectricWood;
@@ -48,8 +46,6 @@ public class ElectricFence extends JavaPlugin{
 			config.set("damage", 0);
 			config.set("radiusDamageEnabled", true);
 			config.set("radiusDamage", 0);
-			config.set("earthBlockEnabled", true);
-			config.getInt("earthBlock", 0);
 			config.set("Shock.Mobs", true);
 			config.set("Shock.Players", true);
 			config.set("FenceTypes.Wood", true);
@@ -67,8 +63,6 @@ public class ElectricFence extends JavaPlugin{
 		damage = config.getInt("damage");
 		radiusDamageEnabled = config.getBoolean("radiusDamageEnabled");
 		radiusDamage = config.getInt("radiusDamage");
-		earthBlockEnabled = config.getBoolean("earthBlockEnabled");
-		earthBlock = config.getInt("earthBlock");
 		isShockingMobs = config.getBoolean("Shock.Mobs");
 		isShockingPlayers = config.getBoolean("Shock.Players");
 		isElectricWood = config.getBoolean("FenceTypes.Wood");
