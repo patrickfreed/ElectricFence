@@ -30,6 +30,8 @@ public class ElectricFence extends JavaPlugin {
     private boolean isElectricIron;
     private boolean isShockingPlayers;
 
+    private boolean metrics;
+
     private final static String BLOCK_DAMAGE_CONFIG = "damage";
     private final static String RADIUS_DAMAGE_ENABLED_CONFIG = "radiusDamageEnabled";
     private final static String RADIUS_DAMAGE_CONFIG = "radiusDamage";
@@ -39,6 +41,7 @@ public class ElectricFence extends JavaPlugin {
     private final static String FENCE_TYPE_IRON_CONFIG = "FenceTypes.Iron";
     private final static String MESSAGING_CONFIG = "isSendingMessages";
     private final static String LIGHTNING_CONFIG = "useLightningEffect";
+    private final static String METRICS_CONFIG = "useMetrics";
 
     private final static BlockFace[] directions = {
             BlockFace.DOWN,
@@ -69,6 +72,7 @@ public class ElectricFence extends JavaPlugin {
             config.set(FENCE_TYPE_IRON_CONFIG, true);
             config.set(MESSAGING_CONFIG, true);
             config.set(LIGHTNING_CONFIG, true);
+            config.set(METRICS_CONFIG, true);
 
             try {
                 config.save(new File("plugins/ElectricFence", "config.yml"));
@@ -87,10 +91,13 @@ public class ElectricFence extends JavaPlugin {
         isElectricIron = config.getBoolean(FENCE_TYPE_IRON_CONFIG);
         isMessaging = config.getBoolean(MESSAGING_CONFIG);
         isUsingLightning = config.getBoolean(LIGHTNING_CONFIG);
+        metrics = config.getBoolean(METRICS_CONFIG);
 
         message("Configuration file loaded");
 
-        new Metrics(this);
+        if (metrics) {
+            new Metrics(this);
+        }
 
         if (radiusDamageEnabled) {
             getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> {
