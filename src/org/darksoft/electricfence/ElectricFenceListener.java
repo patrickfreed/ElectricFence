@@ -10,32 +10,32 @@ import org.bukkit.event.block.BlockDamageEvent;
 
 public class ElectricFenceListener implements Listener {
 
-    private ElectricFence electricFence;
+	private ElectricFence electricFence;
 
-    ElectricFenceListener(ElectricFence e) {
-        this.electricFence = e;
-    }
+	ElectricFenceListener(ElectricFence e) {
+		this.electricFence = e;
+	}
 
-    @EventHandler
-    public void onBlockDamage(BlockDamageEvent event) {
-        Player player = event.getPlayer();
-        if (electricFence.isElectricFence(event.getBlock())) {
-            Block b = event.getBlock();
+	@EventHandler
+	public void onBlockDamage(BlockDamageEvent event) {
+		Player player = event.getPlayer();
+		if (electricFence.isElectricFence(event.getBlock())) {
+			Block b = event.getBlock();
 
-            Location location = player.getLocation();
-            if (electricFence.canBeStruck(player) && electricFence.isElectricFence(b)) {
-                player.damage(electricFence.damage);
+			Location location = player.getLocation();
+			if (electricFence.canBeStruck(player) && electricFence.isElectricFence(b)) {
+				player.damage(electricFence.damage);
 
-                if (electricFence.isMessaging) {
-                    player.sendMessage(ChatColor.YELLOW + "You tried to break through an electric fence!");
-                }
+				if (electricFence.isMessaging) {
+					player.sendMessage(ChatColor.YELLOW + "You tried to break through an electric fence!");
+				}
 
-                if (electricFence.isUsingLightning) {
-                    player.getWorld().strikeLightningEffect(location);
-                }
+				if (electricFence.isUsingLightning) {
+					player.getWorld().strikeLightningEffect(location);
+				}
 
-                event.setCancelled(true);
-            }
-        }
-    }
+				event.setCancelled(true);
+			}
+		}
+	}
 }

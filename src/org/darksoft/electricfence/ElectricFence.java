@@ -1,6 +1,9 @@
 package org.darksoft.electricfence;
 
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -92,7 +95,7 @@ public class ElectricFence extends JavaPlugin {
 
 		if (radiusDamageEnabled) {
 			getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> {
-                for (World world : ElectricFence.this.getServer().getWorlds()) {
+				for (World world : ElectricFence.this.getServer().getWorlds()) {
 					for (Entity entity : world.getEntities()) {
 						if (!canBeStruck(entity)) {
 							continue;
@@ -114,7 +117,7 @@ public class ElectricFence extends JavaPlugin {
 						}
 					}
 				}
-            }, 20L, 20L);
+			}, 20L, 20L);
 		}
 
 		if (isShockingPlayers) {
