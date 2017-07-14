@@ -1,4 +1,4 @@
 name: ElectricFence
-author: darksoft
+author: darksoft/patrickfreed
 main: org.darksoft.electricfence.ElectricFence
-version: 1.9
+version: 2.0
